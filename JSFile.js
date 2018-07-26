@@ -15,5 +15,15 @@ const getMap = () => {
 getMap();
 
 const drawMap = (data) => {
-  
+  let path = d3.geoPath();
+
+  let container = d3.select('body')
+    .append('div')
+    .attr('id', 'container')
+    .attr('class', 'container');
+
+  let svg = container.append('svg')
+    .attr('width', 1000)
+    .attr('height', 800)
+    .attr('class', 'containerSVG');
 };

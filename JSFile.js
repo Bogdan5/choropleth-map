@@ -58,10 +58,50 @@ const drawMap = (countiesJSON, dataEducation) => {
   //     .enter().append('path')
   //     .attr('class', data ? quantize : null)
   //     .attr('d', path);
+let i = 0;
+
+  let getColor = (id) => {
+
+    while (i<5) {
+      console.log('id', id);
+      i++;
+    }
+    let result;
+    let len = dataEducation.length;
+    let searcher = (index) => {
+      while(i<6) {
+        console.log('index', arguments[0]);
+      }
+      if (dataEducation[index].fips === id) {
+        result = dataEducation[index].bachelorsOrHigher;
+        return;
+      } else if (dataEducation[index].fips > id) {
+        if (index === 0 || dataEducation[index - 1] < id) {
+          return null;
+        } else {
+          searcher(Math.floor(index / 2));
+        }
+      } else {
+        if (index === len - 1 || dataEducation[index + 1] < id) {
+          return null;
+        } else {
+          searcher(Math.ceil((len + index) / 2));
+        }
+      }
+    };
+
+    searcher(Math.round(len / 2));
+    if (result) {
+      return color(result);
+    } else {
+      return '#a6a6a6';
+    }
+  };
 
   var color = d3.scaleThreshold()
     .domain(d3.range(0, 100))
     .range(d3.schemeBlues[9]);
+
 
   // create paths for each state using the json data
   // and the geo path generator to draw the shapes
@@ -70,7 +110,7 @@ const drawMap = (countiesJSON, dataEducation) => {
     .selectAll('path')
     .data(topojson.feature(countiesJSON, countiesJSON.objects.counties).features)
     .enter().append('path')
-    .attr('fill', color(20))
+    .attr('fill', (d) => getColor(d.id))
     .attr('d', path)
     .append('title')
     .text(function (d) { return d.rate + '%'; });

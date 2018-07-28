@@ -26,82 +26,42 @@ getMap();
 const drawMap = (countiesJSON, dataEducation) => {
   let path = d3.geoPath();
 
+  //container that includes the svg, necessary not to make body's display relative
   let container = d3.select('body')
     .append('div')
     .attr('id', 'container')
     .attr('class', 'container');
 
+  //tooltip
+  let tooltip = d3.select('body')
+    .append('div')
+    .attr('visibility', 'hidden')
+    .attr('id', 'tooltip')
+    .attr('class', 'tooltip');
+
+  //svg element that includes the map
   let svg = container.append('svg')
     .attr('width', 1000)
     .attr('height', 800)
     .attr('class', 'containerSVG');
 
-  // create a container for counties
-  // let counties = svg.append('g')
-  //     .attr('id', 'counties')
-  //     .attr('class', 'Blues');
-
-  // create a container for states
-  let states = svg.append('g')
-    .attr('id', 'states');
-
-  // create paths for each state using the json data
-  // and the geo path generator to draw the shapes
-  // states.selectAll('path')
-  // .datum(topojson.feature(data, data.objects.states))
-  // .attr('d', path);
-
-  // create paths for each county using the json data
-  // and the geo path generator to draw the shapes
-  // counties.selectAll('path')
-  //     .data()
-  //     .enter().append('path')
-  //     .attr('class', data ? quantize : null)
-  //     .attr('d', path);
-let i = 0;
-
-  let getColor = (id) => {
-
-    while (i<5) {
-      console.log('id', id);
-      i++;
-    }
-    let result;
-    let len = dataEducation.length;
-    let searcher = (index) => {
-      while(i<6) {
-        console.log('index', arguments[0]);
-      }
-      if (dataEducation[index].fips === id) {
-        result = dataEducation[index].bachelorsOrHigher;
-        return;
-      } else if (dataEducation[index].fips > id) {
-        if (index === 0 || dataEducation[index - 1] < id) {
-          return null;
-        } else {
-          searcher(Math.floor(index / 2));
-        }
-      } else {
-        if (index === len - 1 || dataEducation[index + 1] < id) {
-          return null;
-        } else {
-          searcher(Math.ceil((len + index) / 2));
-        }
-      }
+  //the education object facilitates the access to information in dataEducation
+  //it ties all data on counties to the id
+  let education = {};
+  dataEducation.forEach((item) => {
+    education[item.fips] = {
+      state: item.state,
+      area_name: item.area_name,
+      rate: item.bachelorsOrHigher,
     };
+  });
 
-    searcher(Math.round(len / 2));
-    if (result) {
-      return color(result);
-    } else {
-      return '#a6a6a6';
-    }
-  };
-
+  //scale that uses the domain as an array of thresholds and the range as the colors
+  //of the gradient
+  let colorArray = ['#f2f0f7', '#dadaeb', '#bcbddc', '#9e9ac8', '#756bb1', '#54278f'];
   var color = d3.scaleThreshold()
-    .domain(d3.range(0, 100))
-    .range(d3.schemeBlues[9]);
-
+    .domain([3, 12, 21, 30, 39, 48, 57, 66])
+    .range(colorArray);
 
   // create paths for each state using the json data
   // and the geo path generator to draw the shapes
@@ -110,21 +70,27 @@ let i = 0;
     .selectAll('path')
     .data(topojson.feature(countiesJSON, countiesJSON.objects.counties).features)
     .enter().append('path')
-    .attr('fill', (d) => getColor(d.id))
+    .attr('fill', (d) => color(education[d.id].rate))
     .attr('d', path)
-    .append('title')
-    .text(function (d) { return d.rate + '%'; });
+    .on('mouseover', (d) => {
+      tooltip.style('visibility', 'visible')
+      .style('left', `${d3.event.pageX + 10}px`)
+      .style('top', `${d3.event.pageY}px`)
+      .text(`${education[d.id].area_name} ${education[d.id].state}:
+      ${education[d.id].rate} %`);
+    })
+    .on('mouseout', (d) => {tooltip.style('visibility', 'hidden');
+    });
 
+  //draws the borders of states
   svg.append('path')
     .datum(topojson.mesh(countiesJSON, countiesJSON.objects.states,
       function (a, b) { return a !== b; }))
     .attr('class', 'states')
     .attr('d', path);
 
-  // quantize function takes a data point and returns a number
-  // between 0 and 8, to indicate intensity, the prepends a 'q'
-  // and appends '-9'
-  // function quantize(d) {
-  //   return 'q' + Math.min(8, ~~(data[d.geometries.id] * 9 / 12)) + '-9';
-  // }
+  //legend
+  let legend = svg.append('g')
+      .attr('x', 800)
+      .attr('y', 200);
 };

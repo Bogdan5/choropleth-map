@@ -38,9 +38,9 @@ const drawMap = (data) => {
 
   // create paths for each state using the json data
   // and the geo path generator to draw the shapes
-  states.selectAll("path")
-  .datum(topojson.feature(data, data.objects.states))
-  .attr("d", path);
+  // states.selectAll('path')
+  // .datum(topojson.feature(data, data.objects.states))
+  // .attr('d', path);
 
   // create paths for each county using the json data
   // and the geo path generator to draw the shapes
@@ -52,17 +52,31 @@ const drawMap = (data) => {
 
   console.log('states', data.objects.states);
 
+  var color = d3.scaleThreshold()
+    .domain(d3.range(2, 10))
+    .range(d3.schemeBlues[9]);
+
   // create paths for each state using the json data
   // and the geo path generator to draw the shapes
-  states.selectAll('path')
-    .data(data.objects.states)
+  svg.append('g')
+    .attr('class', 'counties')
+    .selectAll('path')
+    .data(topojson.feature(data, data.objects.counties).features)
     .enter().append('path')
+    .attr('fill', 'red')
+    .attr('d', path)
+    .append('title')
+    .text(function (d) { return d.rate + '%'; });
+
+  svg.append('path')
+    .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
+    .attr('class', 'states')
     .attr('d', path);
 
   // quantize function takes a data point and returns a number
   // between 0 and 8, to indicate intensity, the prepends a 'q'
   // and appends '-9'
-  function quantize(d) {
-    return "q" + Math.min(8, ~~(data[d.id] * 9 / 12)) + "-9";
-  }
+  // function quantize(d) {
+  //   return 'q' + Math.min(8, ~~(data[d.id] * 9 / 12)) + '-9';
+  // }
 };

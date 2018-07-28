@@ -1,20 +1,29 @@
 const getMap = () => {
   let req = new XMLHttpRequest();
-  let dataJSON = [];
+  let countiesJSON = [];
+  let educationJSON = [];
   let url = 'https://raw.githubusercontent.com/no-stack-dub-sack/';
   url += 'testable-projects-fcc/master/src/data/choropleth_map/counties.json';
   req.open('GET', url, true);
   req.send();
   req.onload = () => {
-    dataJSON = JSON.parse(req.responseText);
-    console.log('data1', dataJSON);
-    drawMap(dataJSON);
+    countiesJSON = JSON.parse(req.responseText);
+    console.log('counties', countiesJSON);
+    url = 'https://raw.githubusercontent.com/no-stack-dub-sack';
+    url += '/testable-projects-fcc/master/src/data/choropleth_map/for_user_education.json';
+    req.open('GET', url, true);
+    req.send();
+    req.onload = () => {
+      educationJSON = JSON.parse(req.responseText);
+      console.log('education', educationJSON);
+      drawMap(countiesJSON, educationJSON);
+    };
   };
 };
 
 getMap();
 
-const drawMap = (data) => {
+const drawMap = (countiesJSON, dataEducation) => {
   let path = d3.geoPath();
 
   let container = d3.select('body')
@@ -50,10 +59,8 @@ const drawMap = (data) => {
   //     .attr('class', data ? quantize : null)
   //     .attr('d', path);
 
-  console.log('states', data.objects.states);
-
   var color = d3.scaleThreshold()
-    .domain(d3.range(2, 10))
+    .domain(d3.range(0, 100))
     .range(d3.schemeBlues[9]);
 
   // create paths for each state using the json data
@@ -61,15 +68,16 @@ const drawMap = (data) => {
   svg.append('g')
     .attr('class', 'counties')
     .selectAll('path')
-    .data(topojson.feature(data, data.objects.counties).features)
+    .data(topojson.feature(countiesJSON, countiesJSON.objects.counties).features)
     .enter().append('path')
-    .attr('fill', 'red')
+    .attr('fill', color(20))
     .attr('d', path)
     .append('title')
     .text(function (d) { return d.rate + '%'; });
 
   svg.append('path')
-    .datum(topojson.mesh(data, data.objects.states, function (a, b) { return a !== b; }))
+    .datum(topojson.mesh(countiesJSON, countiesJSON.objects.states,
+      function (a, b) { return a !== b; }))
     .attr('class', 'states')
     .attr('d', path);
 
@@ -77,6 +85,6 @@ const drawMap = (data) => {
   // between 0 and 8, to indicate intensity, the prepends a 'q'
   // and appends '-9'
   // function quantize(d) {
-  //   return 'q' + Math.min(8, ~~(data[d.id] * 9 / 12)) + '-9';
+  //   return 'q' + Math.min(8, ~~(data[d.geometries.id] * 9 / 12)) + '-9';
   // }
 };

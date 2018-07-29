@@ -90,7 +90,20 @@ const drawMap = (countiesJSON, dataEducation) => {
     .attr('d', path);
 
   //legend
+  let legendX = 800;
+  let legendY = 200;
+  let side = 30;
   let legend = svg.append('g')
-      .attr('x', 800)
-      .attr('y', 200);
+      .attr('x', legendx)
+      .attr('y', legendY);
+  legend.selectAll('rect')
+    .data(colorArray)
+    .enter()
+    .append('rect')
+    .attr('class', 'legend')
+    .attr('width', side)
+    .attr('height', side)
+    .attr('x', (d, i) => legendX + i * side)
+    .attr('y', (d, i) => legendY + i * side);
+
 };

@@ -58,9 +58,12 @@ const drawMap = (countiesJSON, dataEducation) => {
 
   //scale that uses the domain as an array of thresholds and the range as the colors
   //of the gradient
-  let colorArray = ['#f2f0f7', '#dadaeb', '#bcbddc', '#9e9ac8', '#756bb1', '#54278f'];
+  let colorArray = ['#ffffff', '#f2ccff', '#e699ff', '#d24dff', '#c61aff', '#9900cc',
+  '#730099', '#39004d', '#000000',
+  ];
+  let tickArray = [3, 12, 21, 30, 39, 48, 57, 66];
   var color = d3.scaleThreshold()
-    .domain([3, 12, 21, 30, 39, 48, 57, 66])
+    .domain(tickArray)
     .range(colorArray);
 
   // create paths for each state using the json data
@@ -90,11 +93,11 @@ const drawMap = (countiesJSON, dataEducation) => {
     .attr('d', path);
 
   //legend
-  let legendX = 800;
-  let legendY = 200;
+  let legendX = 100;
+  let legendY = 720;
   let side = 30;
   let legend = svg.append('g')
-      .attr('x', legendx)
+      .attr('x', legendX)
       .attr('y', legendY);
   legend.selectAll('rect')
     .data(colorArray)
@@ -104,6 +107,16 @@ const drawMap = (countiesJSON, dataEducation) => {
     .attr('width', side)
     .attr('height', side)
     .attr('x', (d, i) => legendX + i * side)
-    .attr('y', (d, i) => legendY + i * side);
+    .attr('y', legendY)
+    .style('fill', (d) => d);
 
+  const axisScale = d3.scalePoint()
+    .domain(tickArray)
+    .range([0, 7 * side]);
+  const xAxis = d3.axisBottom(axisScale);
+
+  const axis = svg.append('g')
+    .attr('transform', `translate(${legendX + side - 0.5}, ${legendY + side})`)
+    .attr('class', 'x-axis')
+    .call(xAxis);
 };

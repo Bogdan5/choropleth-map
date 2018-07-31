@@ -17,3 +17,17 @@
   font-family: Arial;
   padding: 5px;
 }
+
+.counties{
+  border: 1px solid yellow;
+}
+
+.legend{
+  stroke: black;
+}
+
+.x-axis{
+  stroke: Black;
+  fill: none;
+  stroke-width: 1px;
+}
